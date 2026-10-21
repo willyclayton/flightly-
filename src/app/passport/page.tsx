@@ -73,7 +73,7 @@ export default function PassportPage() {
       <PassportMap flights={flights} />
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <div className="card rounded-3xl p-5">
+        <div className="card p-5">
           <h2 className="display text-2xl">Most visited</h2>
           <ul className="mt-4 space-y-3">
             {stats.mostVisited.map((m) => {
@@ -98,7 +98,7 @@ export default function PassportPage() {
             )}
           </ul>
         </div>
-        <div className="card rounded-3xl p-5">
+        <div className="card p-5">
           <h2 className="display text-2xl">Airlines flown</h2>
           <ul className="mt-4 flex flex-wrap gap-2">
             {[...new Set(flights.map((f) => f.airlineIata))].map((code) => {
@@ -122,9 +122,11 @@ export default function PassportPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card rounded-3xl p-5">
-      <div className="text-[11px] uppercase tracking-wider text-[var(--text-3)]">{label}</div>
-      <div className="display mt-2 text-3xl">{value}</div>
+    <div className="card p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)]">
+        {label}
+      </div>
+      <div className="display tnum mt-2 text-[28px]">{value}</div>
     </div>
   );
 }

@@ -42,7 +42,7 @@ export function PassportMap({ flights }: { flights: Flight[] }) {
   }, [arcs]);
 
   return (
-    <div className="card overflow-hidden rounded-3xl">
+    <div className="card overflow-hidden">
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full" role="img" aria-label="Flight map">
         <defs>
           <radialGradient id="ocean" cx="50%" cy="40%" r="70%">

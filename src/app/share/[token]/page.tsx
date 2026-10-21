@@ -8,6 +8,7 @@ import { fmtDate, fmtTime } from "@/lib/format";
 import { StatusPill } from "@/components/StatusPill";
 import { LiveMap } from "@/components/LiveMap";
 import { phaseLabel } from "@/lib/status";
+import { EmptyState, ProLabel } from "@/components/ui";
 
 export default function SharePage({
   params,
@@ -19,15 +20,16 @@ export default function SharePage({
 
   if (!flight) {
     return (
-      <div className="card mx-auto max-w-lg rounded-3xl p-10 text-center">
-        <h1 className="display text-3xl">Shared flight unavailable</h1>
-        <p className="mt-3 text-sm text-[var(--text-2)]">
-          Flightly stores trips on-device. Open this link on the device that created
-          the share, or ask your friend to send a fresh link.
-        </p>
-        <Link href="/" className="btn btn-primary mt-6 inline-flex">
-          Open Flightly
-        </Link>
+      <div className="px-4 pt-16">
+        <EmptyState title="Shared flight unavailable">
+          <p className="mx-auto mt-3 max-w-sm text-[14px] text-[var(--text-2)]">
+            Flightly stores trips on-device. Open this link on the device that created the
+            share, or ask for a fresh link.
+          </p>
+          <Link href="/" className="btn btn-primary mt-6 inline-flex">
+            Open Flightly
+          </Link>
+        </EmptyState>
       </div>
     );
   }
@@ -36,15 +38,13 @@ export default function SharePage({
   const dest = getAirport(flight.destIata);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-lg space-y-5 px-4 py-6">
       <div className="text-center">
-        <div className="text-xs uppercase tracking-[0.2em] text-[var(--blue)]">
-          Live share
-        </div>
-        <h1 className="display mt-2 text-4xl">
+        <ProLabel>Live share</ProLabel>
+        <h1 className="display mt-2 text-[36px]">
           {flight.originIata} → {flight.destIata}
         </h1>
-        <p className="mt-2 text-[var(--text-2)]">
+        <p className="mt-2 text-[14px] text-[var(--text-2)]">
           {flight.flightNumber} · {fmtDate(flight.scheduledDeparture, origin?.timezone)} ·{" "}
           {phaseLabel(flight.phase)}
         </p>
@@ -53,11 +53,11 @@ export default function SharePage({
         </div>
       </div>
 
-      <div className="card grid grid-cols-2 gap-4 rounded-3xl p-6 text-center">
+      <div className="card grid grid-cols-2 gap-4 p-5 text-center">
         <div>
-          <div className="display text-4xl">{flight.originIata}</div>
-          <div className="text-sm text-[var(--text-2)]">{origin?.city}</div>
-          <div className="mt-2 text-xl font-semibold">
+          <div className="display text-[36px]">{flight.originIata}</div>
+          <div className="text-[13px] text-[var(--text-2)]">{origin?.city}</div>
+          <div className="tnum mt-2 text-xl font-semibold">
             {fmtTime(
               flight.estimatedDeparture ?? flight.scheduledDeparture,
               origin?.timezone,
@@ -65,9 +65,9 @@ export default function SharePage({
           </div>
         </div>
         <div>
-          <div className="display text-4xl">{flight.destIata}</div>
-          <div className="text-sm text-[var(--text-2)]">{dest?.city}</div>
-          <div className="mt-2 text-xl font-semibold">
+          <div className="display text-[36px]">{flight.destIata}</div>
+          <div className="text-[13px] text-[var(--text-2)]">{dest?.city}</div>
+          <div className="tnum mt-2 text-xl font-semibold">
             {fmtTime(
               flight.estimatedArrival ?? flight.scheduledArrival,
               dest?.timezone,
@@ -76,7 +76,7 @@ export default function SharePage({
         </div>
       </div>
 
-      <LiveMap flight={flight} height={300} />
+      <LiveMap flight={flight} height={280} />
 
       <div className="text-center">
         <Link href={`/flight/${flight.id}`} className="btn btn-primary">

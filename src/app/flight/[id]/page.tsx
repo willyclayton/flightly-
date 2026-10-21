@@ -17,6 +17,7 @@ import { WeatherChip } from "@/components/WeatherChip";
 import { findConnections } from "@/lib/connections";
 import { ConnectionAssistant } from "@/components/ConnectionAssistant";
 import { phaseLabel } from "@/lib/status";
+import { EmptyState, ProLabel, SectionCard, StatCell } from "@/components/ui";
 
 export default function FlightPage({
   params,
@@ -39,11 +40,12 @@ export default function FlightPage({
 
   if (!flight) {
     return (
-      <div className="card rounded-3xl p-10 text-center">
-        <h1 className="display text-3xl">Flight not found</h1>
-        <Link href="/" className="btn btn-primary mt-6 inline-flex">
-          Back to trips
-        </Link>
+      <div className="px-4 pt-10">
+        <EmptyState title="Flight not found">
+          <Link href="/" className="btn btn-primary mt-6 inline-flex">
+            Back to flights
+          </Link>
+        </EmptyState>
       </div>
     );
   }
@@ -53,10 +55,11 @@ export default function FlightPage({
   const airline = getAirline(flight.airlineIata);
   const depIso = flight.estimatedDeparture ?? flight.scheduledDeparture;
   const arrIso = flight.estimatedArrival ?? flight.scheduledArrival;
+  const depDelay = delayLabel(flight.scheduledDeparture, flight.estimatedDeparture);
+  const token = flight.shareToken ?? flight.id;
 
   async function share() {
-    const url = `${window.location.origin}/share/${flight!.shareToken}`;
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(`${window.location.origin}/share/${token}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -64,7 +67,7 @@ export default function FlightPage({
   return (
     <div className="space-y-4 px-4 pb-8 pt-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/" className="text-sm font-semibold text-[var(--blue)]">
+        <Link href="/" className="text-[14px] font-semibold text-[var(--blue)]">
           ← Flights
         </Link>
         <div className="flex flex-wrap gap-2">
@@ -84,48 +87,50 @@ export default function FlightPage({
         </div>
       </div>
 
-      <section className="card overflow-hidden rounded-[2rem] p-6 md:p-8">
+      <section className="card p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-xs uppercase tracking-[0.2em] text-[var(--text-2)]">
+            <div className="text-[13px] font-semibold text-[var(--text-2)]">
               {airline?.name ?? flight.airlineIata} · {flight.flightNumber}
             </div>
-            <h1 className="display mt-2 text-4xl md:text-5xl">
+            <h1 className="display mt-2 text-[36px] leading-none md:text-[44px]">
               {flight.originIata} → {flight.destIata}
             </h1>
-            <p className="mt-2 text-[var(--text-2)]">
+            <p className="mt-2 text-[14px] text-[var(--text-2)]">
               {fmtDate(depIso, origin?.timezone)} · {phaseLabel(flight.phase)}
             </p>
           </div>
           <StatusPill flight={flight} />
         </div>
 
-        <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <div>
-            <div className="display text-5xl">{flight.originIata}</div>
-            <div className="text-sm text-[var(--text-2)]">{origin?.city}</div>
-            <div className="mt-2 text-2xl font-semibold">
+            <div className="display text-[40px] leading-none tracking-wide">
+              {flight.originIata}
+            </div>
+            <div className="mt-1 text-[13px] text-[var(--text-2)]">{origin?.city}</div>
+            <div className="tnum mt-2 text-[28px] font-bold leading-none">
               {fmtTime(depIso, origin?.timezone)}
             </div>
-            <div className="text-xs text-[var(--text-3)]">
+            <div className="mt-1 text-[12px] text-[var(--text-3)]">
               Scheduled {fmtTime(flight.scheduledDeparture, origin?.timezone)}
-              {delayLabel(flight.scheduledDeparture, flight.estimatedDeparture)
-                ? ` · ${delayLabel(flight.scheduledDeparture, flight.estimatedDeparture)}`
-                : ""}
+              {depDelay ? ` · ${depDelay}` : ""}
             </div>
           </div>
-          <div className="text-center text-sm text-[var(--text-3)]">
+          <div className="text-center text-[12px] text-[var(--text-3)]">
             <div>{durationLabel(flight.durationMin ?? 0)}</div>
             <div className="my-2 text-[var(--blue)]">✈</div>
-            <div>{flight.distanceNm ?? "—"} nm</div>
+            <div className="tnum">{flight.distanceNm ?? "—"} nm</div>
           </div>
           <div className="text-right">
-            <div className="display text-5xl">{flight.destIata}</div>
-            <div className="text-sm text-[var(--text-2)]">{dest?.city}</div>
-            <div className="mt-2 text-2xl font-semibold">
+            <div className="display text-[40px] leading-none tracking-wide">
+              {flight.destIata}
+            </div>
+            <div className="mt-1 text-[13px] text-[var(--text-2)]">{dest?.city}</div>
+            <div className="tnum mt-2 text-[28px] font-bold leading-none">
               {fmtTime(arrIso, dest?.timezone)}
             </div>
-            <div className="text-xs text-[var(--text-3)]">
+            <div className="mt-1 text-[12px] text-[var(--text-3)]">
               Scheduled {fmtTime(flight.scheduledArrival, dest?.timezone)}
             </div>
           </div>
@@ -152,21 +157,25 @@ export default function FlightPage({
         />
       ))}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <AirportOps iata={flight.originIata} />
         <AirportOps iata={flight.destIata} />
       </div>
 
-      <section className="card rounded-3xl p-5">
-        <div className="text-xs uppercase tracking-[0.2em] text-[var(--blue)]">
-          Pilot-grade details
-        </div>
+      <SectionCard>
+        <ProLabel>Pilot-grade details</ProLabel>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Detail label="Aircraft" value={flight.aircraft?.model ?? flight.aircraft?.type ?? "—"} />
-          <Detail label="Registration" value={flight.aircraft?.registration ?? "—"} />
-          <Detail label="Cabin / seat" value={`${flight.cabin ?? "—"} · ${flight.seat ?? "—"}`} />
-          <Detail label="Booking code" value={flight.bookingCode ?? "—"} />
-          <Detail
+          <StatCell
+            label="Aircraft"
+            value={flight.aircraft?.model ?? flight.aircraft?.type ?? "—"}
+          />
+          <StatCell label="Registration" value={flight.aircraft?.registration ?? "—"} />
+          <StatCell
+            label="Cabin / seat"
+            value={`${flight.cabin ?? "—"} · ${flight.seat ?? "—"}`}
+          />
+          <StatCell label="Booking code" value={flight.bookingCode ?? "—"} />
+          <StatCell
             label="Departure gate"
             value={
               flight.gate ??
@@ -175,21 +184,12 @@ export default function FlightPage({
                 : "—")
             }
           />
-          <Detail label="Baggage claim" value={flight.baggageClaim ?? "Pending"} />
+          <StatCell label="Baggage claim" value={flight.baggageClaim ?? "Pending"} />
         </div>
         {flight.notes && (
-          <p className="mt-4 text-sm text-[var(--text-2)]">{flight.notes}</p>
+          <p className="mt-4 text-[14px] text-[var(--text-2)]">{flight.notes}</p>
         )}
-      </section>
-    </div>
-  );
-}
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-[var(--divider)] p-3">
-      <div className="text-[11px] uppercase tracking-wider text-[var(--text-3)]">{label}</div>
-      <div className="mt-1 text-sm font-semibold">{value}</div>
+      </SectionCard>
     </div>
   );
 }

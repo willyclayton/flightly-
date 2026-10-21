@@ -2,119 +2,171 @@
 
 import { useEffect, useState } from "react";
 import type { Flight, LivePosition } from "@/lib/types";
-import { inboundProgress, simulatePosition } from "@/lib/opensky";
+import {
+  inboundProgress,
+  routeProgress,
+  simulatePosition,
+} from "@/lib/opensky";
 import { getAirport } from "@/data/airports";
-import { fmtTime, relativeLabel } from "@/lib/format";
+import { fmtTime } from "@/lib/format";
+import { phaseLabel } from "@/lib/status";
+import { ProLabel, SectionCard, StatCell } from "@/components/ui";
 import { parseISO, subMinutes } from "date-fns";
 
 export function WheresMyPlane({ flight }: { flight: Flight }) {
   const [pos, setPos] = useState<LivePosition | null>(null);
-  const progress = inboundProgress(flight);
   const origin = getAirport(flight.originIata);
+  const inbound = inboundProgress(flight);
+  const airborne =
+    flight.status === "in_air" ||
+    ["taxi_out", "airborne", "cruise", "descent", "approach"].includes(flight.phase);
+  const selfProgress = routeProgress(flight);
 
   useEffect(() => {
-    if (!flight.inboundEta) {
-      setPos(null);
-      return;
-    }
-    // Simulate inbound aircraft approaching origin
-    const eta = parseISO(flight.inboundEta);
-    const fakeInbound: Flight = {
-      ...flight,
-      id: `${flight.id}_inbound`,
-      originIata: flight.originIata,
-      destIata: flight.originIata,
-      scheduledDeparture: subMinutes(eta, 180).toISOString(),
-      scheduledArrival: eta.toISOString(),
-      estimatedDeparture: subMinutes(eta, 180).toISOString(),
-      estimatedArrival: eta.toISOString(),
-      actualDeparture: subMinutes(eta, 160).toISOString(),
-    };
-    // Use a nearby "origin" offset via simulate from a synthetic route
-    const nearby = getAirport(
-      ["DFW", "ORD", "ATL", "DEN", "LAX"].find((c) => c !== flight.originIata) ?? "DFW",
-    );
-    if (nearby && origin) {
-      const synthetic: Flight = {
-        ...fakeInbound,
-        originIata: nearby.iata,
-        destIata: origin.iata,
-        scheduledDeparture: subMinutes(eta, 200).toISOString(),
-        scheduledArrival: eta.toISOString(),
-        estimatedDeparture: subMinutes(eta, 200).toISOString(),
-        estimatedArrival: eta.toISOString(),
-        actualDeparture: subMinutes(eta, 180).toISOString(),
-      };
-      setPos(simulatePosition(synthetic));
-    }
-  }, [flight, origin]);
+    let cancelled = false;
 
-  if (!flight.aircraft && !flight.inboundFlightNumber) {
+    async function load() {
+      // Prefer live OpenSky fix when we have a hex or callsign
+      try {
+        const params = new URLSearchParams();
+        if (flight.aircraft?.icao24) params.set("icao24", flight.aircraft.icao24);
+        else params.set("callsign", flight.flightNumber.replace(/\s+/g, ""));
+        const res = await fetch(`/api/opensky?${params.toString()}`);
+        if (res.ok) {
+          const data = (await res.json()) as { position: LivePosition | null };
+          if (!cancelled && data.position) {
+            setPos(data.position);
+            return;
+          }
+        }
+      } catch {
+        /* fall through */
+      }
+
+      if (cancelled) return;
+
+      if (airborne) {
+        setPos(simulatePosition(flight));
+        return;
+      }
+
+      // Pre-departure: simulate inbound aircraft toward origin
+      if (flight.inboundEta && origin) {
+        const eta = parseISO(flight.inboundEta);
+        const feeder =
+          ["DFW", "ORD", "ATL", "DEN", "LAX"].find((c) => c !== flight.originIata) ??
+          "DFW";
+        const nearby = getAirport(feeder);
+        if (nearby) {
+          setPos(
+            simulatePosition({
+              ...flight,
+              id: `${flight.id}_inbound`,
+              originIata: nearby.iata,
+              destIata: origin.iata,
+              scheduledDeparture: subMinutes(eta, 200).toISOString(),
+              scheduledArrival: eta.toISOString(),
+              estimatedDeparture: subMinutes(eta, 200).toISOString(),
+              estimatedArrival: eta.toISOString(),
+              actualDeparture: subMinutes(eta, 180).toISOString(),
+            }),
+          );
+          return;
+        }
+      }
+
+      setPos(null);
+    }
+
+    void load();
+    const t = setInterval(() => void load(), 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [flight, airborne, origin]);
+
+  if (!flight.aircraft && !flight.inboundFlightNumber && !flight.inboundEta) {
     return (
-      <section className="card rounded-3xl p-5">
-        <div className="text-xs uppercase tracking-[0.2em] text-[var(--blue)]">
-          Where&apos;s my plane · Pro
-        </div>
-        <p className="mt-3 text-sm text-[var(--text-2)]">
+      <SectionCard>
+        <ProLabel>Where&apos;s my plane · Pro</ProLabel>
+        <p className="mt-3 text-[15px] text-[var(--text-2)]">
           Add a tail number or inbound flight to unlock 25-hour aircraft tracking.
         </p>
-      </section>
+      </SectionCard>
     );
   }
 
-  const pct = Math.round((progress?.fraction ?? 0.35) * 100);
+  const pct = Math.round((airborne ? selfProgress : (inbound?.fraction ?? 0)) * 100);
+  const title =
+    flight.aircraft?.registration ??
+    flight.inboundFlightNumber ??
+    flight.flightNumber;
 
   return (
-    <section className="card rounded-3xl p-5">
+    <SectionCard>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-[0.2em] text-[var(--blue)]">
-            Where&apos;s my plane · Pro
-          </div>
-          <h3 className="display mt-2 text-2xl">
-            {flight.aircraft?.registration ?? flight.inboundFlightNumber}
-          </h3>
-          <p className="mt-1 text-sm text-[var(--text-2)]">
+          <ProLabel>Where&apos;s my plane · Pro</ProLabel>
+          <h3 className="display mt-2 text-[28px] leading-tight">{title}</h3>
+          <p className="mt-1 text-[13px] text-[var(--text-2)]">
             {flight.aircraft?.model ?? flight.aircraft?.type ?? "Aircraft"}
             {flight.aircraft?.ageYears ? ` · ${flight.aircraft.ageYears}y old` : ""}
             {flight.aircraft?.name ? ` · “${flight.aircraft.name}”` : ""}
           </p>
         </div>
-        <div className="rounded-2xl border border-[var(--divider)] px-3 py-2 text-right">
-          <div className="text-[11px] text-[var(--text-3)]">Inbound</div>
-          <div className="font-semibold">{flight.inboundFlightNumber ?? "—"}</div>
+        <div className="rounded-xl border border-[var(--divider)] px-3 py-2 text-right">
+          <div className="text-[11px] text-[var(--text-3)]">
+            {airborne ? "Phase" : "Inbound"}
+          </div>
+          <div className="text-[13px] font-semibold">
+            {airborne
+              ? phaseLabel(flight.phase)
+              : (flight.inboundFlightNumber ?? "—")}
+          </div>
         </div>
       </div>
 
       <div className="mt-5">
-        <div className="mb-2 flex justify-between text-xs text-[var(--text-2)]">
-          <span>{progress?.label ?? "Tracking"}</span>
-          <span>{pct}%</span>
+        <div className="mb-2 flex justify-between text-[13px] text-[var(--text-2)]">
+          <span>
+            {airborne
+              ? `${flight.originIata} → ${flight.destIata}`
+              : (inbound?.label ?? "Waiting for inbound")}
+          </span>
+          <span className="tnum">{pct}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-[rgba(10,132,255,0.12)]">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[var(--blue)] to-[var(--blue)] transition-all duration-700"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="live-track">
+          <span style={{ width: `${pct}%` }} />
         </div>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <Stat
-          label="ETA to your gate airport"
+        <StatCell
+          label={airborne ? "Altitude" : "ETA to airport"}
           value={
-            flight.inboundEta
-              ? fmtTime(flight.inboundEta, origin?.timezone)
-              : "—"
+            airborne
+              ? pos?.altitudeFt != null
+                ? `FL${Math.round(pos.altitudeFt / 100)}`
+                : "—"
+              : flight.inboundEta
+                ? fmtTime(flight.inboundEta, origin?.timezone)
+                : "—"
           }
         />
-        <Stat
-          label="Remaining"
+        <StatCell
+          label={airborne ? "Groundspeed" : "Remaining"}
           value={
-            progress?.nmRemaining != null ? `${progress.nmRemaining} nm` : relativeLabel(flight.inboundEta ?? new Date().toISOString())
+            airborne
+              ? pos?.speedKts != null
+                ? `${pos.speedKts} kts`
+                : "—"
+              : inbound?.nmRemaining != null
+                ? `${inbound.nmRemaining} nm`
+                : "—"
           }
         />
-        <Stat
+        <StatCell
           label="Live fix"
           value={
             pos
@@ -124,8 +176,8 @@ export function WheresMyPlane({ flight }: { flight: Flight }) {
         />
       </div>
 
-      {flight.delayPrediction?.cause === "late_aircraft" && (
-        <p className="mt-4 rounded-2xl border border-[rgba(255,214,10,0.3)] bg-[rgba(255,214,10,0.08)] px-4 py-3 text-sm text-[var(--delay)]">
+      {!airborne && flight.delayPrediction?.cause === "late_aircraft" && (
+        <p className="mt-4 rounded-xl border border-[rgba(255,214,10,0.3)] bg-[rgba(255,214,10,0.08)] px-4 py-3 text-[14px] text-[var(--delay)]">
           Late inbound is the #1 delay cause. Predicted departure{" "}
           {flight.delayPrediction.predictedDepartureIso
             ? fmtTime(flight.delayPrediction.predictedDepartureIso, origin?.timezone)
@@ -133,15 +185,6 @@ export function WheresMyPlane({ flight }: { flight: Flight }) {
           — often hours before the airline updates.
         </p>
       )}
-    </section>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-[var(--divider)] p-3">
-      <div className="text-[11px] uppercase tracking-wider text-[var(--text-3)]">{label}</div>
-      <div className="mt-1 text-sm font-semibold">{value}</div>
-    </div>
+    </SectionCard>
   );
 }

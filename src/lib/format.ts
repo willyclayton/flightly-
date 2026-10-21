@@ -33,14 +33,6 @@ export function fmtDate(iso: string, tzHint?: string): string {
   }
 }
 
-export function fmtDateTime(iso: string): string {
-  try {
-    return format(parseISO(iso), "EEE MMM d · h:mm a");
-  } catch {
-    return "—";
-  }
-}
-
 export function delayLabel(scheduledIso: string, comparedIso?: string): string | null {
   if (!comparedIso) return null;
   const mins = differenceInMinutes(parseISO(comparedIso), parseISO(scheduledIso));

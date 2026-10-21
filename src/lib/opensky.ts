@@ -137,28 +137,38 @@ export function inboundProgress(flight: Flight, now = new Date()): {
   fraction: number;
   nmRemaining?: number;
 } | null {
-  if (!flight.inboundFlightNumber && !flight.aircraft?.registration) return null;
+  if (!flight.inboundEta) return null;
   const origin = getAirport(flight.originIata);
-  if (!origin || !flight.inboundEta) {
-    return {
-      label: "Tracking inbound aircraft",
-      fraction: 0.4,
-    };
-  }
+  if (!origin) return null;
+
   const eta = parseISO(flight.inboundEta);
   const mins = differenceInMinutes(eta, now);
   if (mins <= 0) {
     return { label: "Inbound aircraft arrived", eta: flight.inboundEta, fraction: 1 };
   }
-  // Fake inbound origin ~ similar region for viz
+
   const fraction = Math.max(0.05, Math.min(0.95, 1 - mins / 300));
-  const nmRemaining = Math.round(haversineNm(origin.lat - 4, origin.lon - 3, origin.lat, origin.lon) * (1 - fraction));
+  const nmRemaining = Math.round(
+    haversineNm(origin.lat - 4, origin.lon - 3, origin.lat, origin.lon) * (1 - fraction),
+  );
   return {
     label: `Inbound ${flight.inboundFlightNumber ?? "aircraft"} · ${mins}m out`,
     eta: flight.inboundEta,
     fraction,
     nmRemaining,
   };
+}
+
+/** Progress of *this* flight along its own route (0–1). */
+export function routeProgress(flight: Flight, now = new Date()): number {
+  const dep = parseISO(
+    flight.actualDeparture ?? flight.estimatedDeparture ?? flight.scheduledDeparture,
+  );
+  const arr = parseISO(
+    flight.actualArrival ?? flight.estimatedArrival ?? flight.scheduledArrival,
+  );
+  const total = Math.max(1, arr.getTime() - dep.getTime());
+  return Math.min(1, Math.max(0, (now.getTime() - dep.getTime()) / total));
 }
 
 export async function fetchOpenSkyByCallsign(

@@ -4,20 +4,33 @@ import type { Flight, FlightPhase } from "@/lib/types";
 import { phaseLabel } from "@/lib/status";
 import { fmtTime } from "@/lib/format";
 import { getAirport } from "@/data/airports";
+import { ProLabel, SectionCard } from "@/components/ui";
 
 const PREFLIGHT: FlightPhase[] = ["scheduled", "check_in", "boarding"];
-const AIRPORT: FlightPhase[] = ["departed_gate", "taxi_out", "airborne"];
+const AT_AIRPORT: FlightPhase[] = [
+  "departed_gate",
+  "taxi_out",
+  "airborne",
+  "cruise",
+  "descent",
+];
 const AFTER: FlightPhase[] = ["approach", "landed", "taxi_in", "arrived"];
+
+function stepIndex(phase: FlightPhase): number {
+  if (PREFLIGHT.includes(phase)) return 0;
+  if (AT_AIRPORT.includes(phase)) return 1;
+  if (AFTER.includes(phase) || phase === "cancelled" || phase === "diverted") return 2;
+  return 0;
+}
 
 export function Timeline({ flight }: { flight: Flight }) {
   const origin = getAirport(flight.originIata);
   const dest = getAirport(flight.destIata);
-  const current = flight.phase;
+  const active = stepIndex(flight.phase);
 
   const steps = [
     {
       title: "Preflight",
-      active: PREFLIGHT.includes(current) || current === "cruise" || current === "descent",
       items: [
         `Check-in${flight.bookingCode ? ` · ${flight.bookingCode}` : ""}`,
         flight.gate || flight.gatePrediction?.gate
@@ -28,9 +41,8 @@ export function Timeline({ flight }: { flight: Flight }) {
     },
     {
       title: "At the airport",
-      active: AIRPORT.includes(current) || ["cruise", "descent", "approach"].includes(current),
       items: [
-        phaseLabel(current),
+        phaseLabel(flight.phase),
         flight.aircraft?.registration
           ? `Tail ${flight.aircraft.registration}`
           : "Aircraft assignment",
@@ -39,7 +51,6 @@ export function Timeline({ flight }: { flight: Flight }) {
     },
     {
       title: "After landing",
-      active: AFTER.includes(current),
       items: [
         `Arrive ${fmtTime(flight.estimatedArrival ?? flight.scheduledArrival, dest?.timezone)}`,
         flight.arrivalGate ? `Arrival gate ${flight.arrivalGate}` : "Arrival gate TBA",
@@ -51,22 +62,22 @@ export function Timeline({ flight }: { flight: Flight }) {
   ];
 
   return (
-    <section className="card rounded-3xl p-5">
-      <div className="text-xs uppercase tracking-[0.2em] text-[var(--blue)]">
-        Trip timeline
-      </div>
-      <div className="mt-5 grid gap-4 md:grid-cols-3">
-        {steps.map((step) => (
+    <SectionCard>
+      <ProLabel>Trip timeline</ProLabel>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {steps.map((step, i) => (
           <div
             key={step.title}
-            className={`rounded-2xl border p-4 ${
-              step.active
+            className={`rounded-xl border p-4 ${
+              i === active
                 ? "border-[rgba(10,132,255,0.45)] bg-[rgba(10,132,255,0.08)]"
-                : "border-[var(--divider)]"
+                : i < active
+                  ? "border-[var(--divider)] opacity-70"
+                  : "border-[var(--divider)]"
             }`}
           >
-            <div className="text-sm font-semibold">{step.title}</div>
-            <ul className="mt-3 space-y-2 text-sm text-[var(--text-2)]">
+            <div className="text-[15px] font-semibold">{step.title}</div>
+            <ul className="mt-3 space-y-2 text-[13px] text-[var(--text-2)]">
               {step.items.map((item) => (
                 <li key={item} className="flex gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--blue)]" />
@@ -77,6 +88,6 @@ export function Timeline({ flight }: { flight: Flight }) {
           </div>
         ))}
       </div>
-    </section>
+    </SectionCard>
   );
 }

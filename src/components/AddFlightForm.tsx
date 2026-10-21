@@ -3,8 +3,17 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { searchAirports } from "@/data/airports";
-import { parseFlightNumber, AIRLINES } from "@/data/airlines";
-import { createManualFlight, useFlightly } from "@/lib/store";
+import { parseFlightNumber, getAirline } from "@/data/airlines";
+import { createManualFlight } from "@/lib/flightFactory";
+import { useFlightly } from "@/lib/store";
+
+function defaultDepartureLocal() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(8, 30, 0, 0);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export function AddFlightForm() {
   const router = useRouter();
@@ -12,13 +21,7 @@ export function AddFlightForm() {
   const [flightNumber, setFlightNumber] = useState("DL884");
   const [origin, setOrigin] = useState("AUS");
   const [dest, setDest] = useState("JFK");
-  const [departure, setDeparture] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(8, 30, 0, 0);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  });
+  const [departure, setDeparture] = useState(defaultDepartureLocal);
   const [gate, setGate] = useState("");
   const [terminal, setTerminal] = useState("");
   const [bookingCode, setBookingCode] = useState("");
@@ -26,13 +29,14 @@ export function AddFlightForm() {
   const [registration, setRegistration] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const parsed = useMemo(() => parseFlightNumber(flightNumber), [flightNumber]);
+  const airline = parsed ? getAirline(parsed.airlineIata) : undefined;
   const originHits = useMemo(() => searchAirports(origin, 6), [origin]);
   const destHits = useMemo(() => searchAirports(dest, 6), [dest]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = parseFlightNumber(flightNumber);
     if (!parsed) {
       setError("Use a flight number like DL884 or BA286.");
       return;
@@ -62,7 +66,7 @@ export function AddFlightForm() {
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-4 rounded-3xl p-6">
+    <form onSubmit={submit} className="card space-y-4 p-6">
       <Field label="Flight number">
         <input
           value={flightNumber}
@@ -72,12 +76,7 @@ export function AddFlightForm() {
         />
         <p className="mt-1 text-[13px] text-[var(--text-3)]">
           Airline auto-detected
-          {parseFlightNumber(flightNumber)
-            ? ` · ${
-                AIRLINES.find((a) => a.iata === parseFlightNumber(flightNumber)?.airlineIata)
-                  ?.name ?? parseFlightNumber(flightNumber)?.airlineIata
-              }`
-            : ""}
+          {parsed ? ` · ${airline?.name ?? parsed.airlineIata}` : ""}
         </p>
       </Field>
 
@@ -151,10 +150,10 @@ export function AddFlightForm() {
         />
       </Field>
 
-      {error && <p className="text-sm text-[var(--cancelled)]">{error}</p>}
+      {error && <p className="text-[14px] text-[var(--cancelled)]">{error}</p>}
 
       <button type="submit" className="btn btn-primary w-full sm:w-auto">
-        Track flight · Pro unlocked
+        Track flight
       </button>
     </form>
   );
@@ -162,8 +161,8 @@ export function AddFlightForm() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block space-y-1.5 text-sm">
-      <span className="text-[var(--text-2)]">{label}</span>
+    <label className="block space-y-1.5 text-[14px]">
+      <span className="font-semibold text-[var(--text-2)]">{label}</span>
       {children}
     </label>
   );

@@ -31,7 +31,7 @@ export default function AirportsPage() {
             <Link
               key={a.iata}
               href={`/airports/${a.iata}`}
-              className="card rounded-3xl p-5 transition hover:border-[rgba(10,132,255,0.35)]"
+              className="card p-5 transition hover:border-[rgba(10,132,255,0.35)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
