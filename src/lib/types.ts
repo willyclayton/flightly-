@@ -178,7 +178,17 @@ export interface PassportStats {
   airlines: number;
   miles: number;
   hours: number;
+  /** e.g. "192h 30m" — Flighty Passport primary time display */
+  flightTimeLabel: string;
   longestNm: number;
   mostVisited: { iata: string; count: number }[];
+  topAirlines: { iata: string; name: string; count: number }[];
+  topRoutes: { route: string; count: number }[];
+  weekdayFlights: { day: number; label: string; count: number }[];
+  countriesList: { code: string; flag: string; name: string }[];
+  delayHours: number;
+  delayMinTotal: number;
+  worstDelayMin: number;
+  delayedFlights: number;
   year: number | "all";
 }

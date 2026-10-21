@@ -8,40 +8,48 @@ const tabs = [
     href: "/",
     label: "Flights",
     match: (p: string) => p === "/" || p.startsWith("/flight"),
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
-      </svg>
+    icon: (active: boolean) => (
+      <span
+        className={`grid h-8 w-8 place-items-center rounded-full ${
+          active ? "bg-[var(--blue)] text-white" : "text-current"
+        }`}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+        </svg>
+      </span>
     ),
   },
   {
-    href: "/add",
-    label: "Search",
-    match: (p: string) => p.startsWith("/add"),
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    href: "/airports",
-    label: "Airport",
-    match: (p: string) => p.startsWith("/airports"),
-    icon: (
+    href: "/friends",
+    label: "Friends",
+    match: (p: string) => p.startsWith("/friends"),
+    icon: () => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M12 3 3 9v2l9-3.5L21 11V9L12 3zm-7 9v7h3v-5h4v5h3v-7l-5-1.5L5 12zm-2 9h18v2H3v-2z" />
+        <path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 1a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 8 12zm8 2c-2.8 0-8 1.4-8 4.2V20h16v-1.8C24 15.4 18.8 14 16 14zM8 14c-.3 0-.7 0-1 .1-2.3.5-7 1.7-7 4.1V20h6v-1.8c0-1.2.5-2.2 1.4-3C8.2 14.5 8.1 14 8 14z" />
       </svg>
     ),
   },
   {
     href: "/passport",
-    label: "Profile",
+    label: "Passport",
     match: (p: string) => p.startsWith("/passport"),
-    icon: (
+    icon: () => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-        <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z" />
+        <path d="M6 2h9a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm1 2v16h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H7zm3.5 4a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm0 6.5c1.8 0 5.5.9 5.5 2.2V18H5v-.3c0-1.3 3.7-2.2 5.5-2.2z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/more",
+    label: "More",
+    match: (p: string) =>
+      p.startsWith("/more") || p.startsWith("/airports") || p.startsWith("/live"),
+    icon: () => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <circle cx="5" cy="12" r="2" />
+        <circle cx="12" cy="12" r="2" />
+        <circle cx="19" cy="12" r="2" />
       </svg>
     ),
   },
@@ -49,30 +57,41 @@ const tabs = [
 
 export function TabBar() {
   const pathname = usePathname();
-  if (pathname.startsWith("/share") || pathname.startsWith("/live")) return null;
+  // Passport is a full-screen Flighty modal (X / Share chrome), not a tab root.
+  if (pathname.startsWith("/share") || pathname.startsWith("/passport")) return null;
 
   return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--divider)] bg-[rgba(11,11,15,0.92)] backdrop-blur-xl"
-      style={{ paddingBottom: "var(--safe-bottom)" }}
+    <div
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex items-end justify-center gap-3 px-4"
+      style={{ paddingBottom: "calc(10px + var(--safe-bottom))" }}
     >
-      <div className="mx-auto flex h-16 max-w-lg items-stretch md:max-w-2xl lg:max-w-4xl">
+      <nav className="pointer-events-auto flex h-[58px] max-w-[min(100%,340px)] flex-1 items-stretch rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(22,22,28,0.92)] px-1 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
         {tabs.map((t) => {
           const active = t.match(pathname);
           return (
             <Link
               key={t.href}
               href={t.href}
-              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold tracking-wide ${
+              className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold tracking-wide ${
                 active ? "text-[var(--blue)]" : "text-[var(--text-2)]"
               }`}
             >
-              {t.icon}
+              {t.icon(active)}
               {t.label}
             </Link>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+      <Link
+        href="/add"
+        aria-label="Search flights"
+        className="pointer-events-auto grid h-[58px] w-[58px] shrink-0 place-items-center rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(22,22,28,0.92)] text-white shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+        </svg>
+      </Link>
+    </div>
   );
 }

@@ -16,6 +16,7 @@ interface FlightlyState {
   flights: Flight[];
   seedDemo: () => void;
   clearDemo: () => void;
+  clearAll: () => void;
   addFlight: (
     input: Partial<Flight> &
       Pick<
@@ -70,6 +71,8 @@ export const useFlightly = create<FlightlyState>()(
           flights: get().flights.filter((f) => !f.isDemo),
           hasSeeded: true,
         }),
+
+      clearAll: () => set({ flights: [], hasSeeded: true }),
 
       addFlight: (input) => {
         const now = new Date().toISOString();
