@@ -71,6 +71,13 @@ a {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
+.sheet {
+  background: var(--surface-1);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--divider);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45);
+}
+
 .tone-good {
   color: var(--on-time);
 }

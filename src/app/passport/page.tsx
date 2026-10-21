@@ -26,9 +26,9 @@ export default function PassportPage() {
     <div className="space-y-6 px-4 pb-8 pt-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="display text-[28px]">Profile</h1>
+          <h1 className="display text-[28px]">Flight Log</h1>
           <p className="mt-1 text-[15px] text-[var(--text-2)]">
-            Passport · unlimited history on your device
+            Your Flighty Passport · unlimited on-device history
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

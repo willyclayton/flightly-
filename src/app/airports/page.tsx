@@ -12,9 +12,9 @@ export default function AirportsPage() {
   return (
     <div className="space-y-4 px-4 pb-8 pt-4">
       <div>
-        <h1 className="display text-[28px]">Airport</h1>
+        <h1 className="display text-[28px] tracking-[-0.4px]">Airport</h1>
         <p className="mt-1 text-[15px] text-[var(--text-2)]">
-          Delay trends and ATC-style advisories · Pro
+          Live conditions and delay trends
         </p>
       </div>
 

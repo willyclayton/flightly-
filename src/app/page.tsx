@@ -7,9 +7,6 @@ import { useFlightly } from "@/lib/store";
 import { FlightCard } from "@/components/FlightCard";
 import { HomeMap } from "@/components/HomeMap";
 import { LiveActivityBanner } from "@/components/LiveActivityBanner";
-import { findConnections } from "@/lib/connections";
-import { ConnectionAssistant } from "@/components/ConnectionAssistant";
-import { FriendsStrip } from "@/components/FriendsStrip";
 
 type Segment = "upcoming" | "past";
 
@@ -41,40 +38,57 @@ export default function HomePage() {
     return { upcoming, past, live };
   }, [flights]);
 
-  const list = segment === "upcoming" ? upcoming : past.slice(0, 20);
-  const connections = useMemo(() => findConnections(upcoming), [upcoming]);
+  const list = segment === "upcoming" ? upcoming : past.slice(0, 24);
 
   return (
-    <div>
-      <header className="flex items-center justify-between px-4 pb-2 pt-4">
-        <h1 className="display text-[28px] leading-tight">Flights</h1>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => seedDemo()}
-            className="rounded-full px-3 py-1.5 text-[13px] font-semibold text-[var(--text-2)]"
-            title="Reload demo"
-          >
-            Demo
-          </button>
-          <Link
-            href="/add"
-            className="grid h-9 w-9 place-items-center rounded-full bg-[var(--blue)] text-xl font-semibold leading-none text-white"
-            aria-label="Add flight"
-          >
-            +
-          </Link>
+    <div className="relative h-[calc(100dvh-var(--tab-h)-var(--safe-bottom))] overflow-hidden">
+      {/* Full-bleed map — Flighty signature */}
+      <div className="absolute inset-x-0 top-0 h-[42%]">
+        <HomeMap flight={live} />
+      </div>
+
+      {/* Bottom sheet */}
+      <div className="sheet absolute inset-x-0 bottom-0 top-[38%] flex flex-col overflow-hidden">
+        <div className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-[var(--surface-3)]" />
+
+        <div className="flex items-center justify-between px-4 pb-2 pt-3">
+          <div>
+            <h1 className="display text-[28px] leading-none tracking-[-0.4px]">
+              My Flights
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => seedDemo()}
+              className="rounded-full px-2.5 py-1 text-[12px] font-semibold text-[var(--text-3)]"
+            >
+              Demo
+            </button>
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-[var(--surface-3)] text-[13px] font-bold text-[var(--text-2)]">
+              W
+            </div>
+          </div>
         </div>
-      </header>
 
-      <HomeMap flight={live} />
+        <Link
+          href="/add"
+          className="mx-4 mb-3 flex h-11 items-center gap-2 rounded-xl bg-[var(--surface-2)] px-3 text-[15px] text-[var(--text-2)]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+          </svg>
+          Search to add flights
+        </Link>
 
-      <div className="space-y-4 px-4 pb-8 pt-4">
         {live && (live.status === "in_air" || live.phase === "boarding") && (
-          <LiveActivityBanner flight={live} />
+          <div className="px-4 pb-3">
+            <LiveActivityBanner flight={live} />
+          </div>
         )}
 
-        <div className="flex rounded-xl bg-[var(--surface-1)] p-1">
+        <div className="mx-4 mb-2 flex rounded-[10px] bg-[var(--canvas)] p-1">
           {(
             [
               ["upcoming", "Upcoming"],
@@ -85,7 +99,7 @@ export default function HomePage() {
               key={key}
               type="button"
               onClick={() => setSegment(key)}
-              className={`flex-1 rounded-[10px] py-2 text-[14px] font-semibold ${
+              className={`flex-1 rounded-lg py-1.5 text-[13px] font-semibold ${
                 segment === key
                   ? "bg-[var(--blue)] text-white"
                   : "text-[var(--text-2)]"
@@ -96,30 +110,18 @@ export default function HomePage() {
           ))}
         </div>
 
-        {connections[0] && segment === "upcoming" && (
-          <ConnectionAssistant
-            inbound={connections[0].inbound}
-            outbound={connections[0].outbound}
-            leg={connections[0].leg}
-          />
-        )}
-
-        {list.length === 0 ? (
-          <div className="card p-8 text-center text-[var(--text-2)]">
-            No flights here.{" "}
-            <Link href="/add" className="font-semibold text-[var(--blue)]">
-              Add one
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-3">
-            {list.map((f, i) => (
-              <FlightCard key={f.id} flight={f} index={i} />
-            ))}
-          </div>
-        )}
-
-        {segment === "upcoming" && <FriendsStrip />}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {list.length === 0 ? (
+            <div className="px-6 py-10 text-center text-[15px] text-[var(--text-2)]">
+              No flights yet.{" "}
+              <Link href="/add" className="font-semibold text-[var(--blue)]">
+                Search to add
+              </Link>
+            </div>
+          ) : (
+            list.map((f) => <FlightCard key={f.id} flight={f} />)
+          )}
+        </div>
       </div>
     </div>
   );
