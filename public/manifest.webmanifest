@@ -1,17 +1,32 @@
 {
   "name": "Flightly",
   "short_name": "Flightly",
-  "description": "Personal flight tracker with Pro features unlocked.",
+  "description": "Personal Flighty-style flight tracker. Pro features unlocked.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#07111f",
-  "theme_color": "#07111f",
+  "orientation": "portrait",
+  "background_color": "#0B0B0F",
+  "theme_color": "#0B0B0F",
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live flight",
+      "short_name": "Live",
+      "description": "Glanceable status for your active flight",
+      "url": "/live"
+    },
+    {
+      "name": "Add flight",
+      "short_name": "Add",
+      "url": "/add"
     }
   ]
 }

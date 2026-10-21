@@ -58,6 +58,12 @@ export default function HomePage() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href="/live"
+              className="rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-[12px] font-bold text-[var(--blue)]"
+            >
+              Live
+            </Link>
             <button
               type="button"
               onClick={() => seedDemo()}

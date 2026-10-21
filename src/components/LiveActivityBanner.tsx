@@ -30,7 +30,7 @@ export function LiveActivityBanner({ flight }: { flight: Flight }) {
 
   return (
     <Link
-      href={`/flight/${flight.id}`}
+      href="/live"
       className="flex items-center gap-3 rounded-2xl bg-[var(--surface-2)] px-3 py-3"
     >
       <div className="min-w-0 flex-1">

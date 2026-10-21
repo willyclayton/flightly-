@@ -49,7 +49,7 @@ const tabs = [
 
 export function TabBar() {
   const pathname = usePathname();
-  if (pathname.startsWith("/share")) return null;
+  if (pathname.startsWith("/share") || pathname.startsWith("/live")) return null;
 
   return (
     <nav

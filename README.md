@@ -1,78 +1,62 @@
 # Flightly
 
-A personal, local-first **Flighty-style** flight tracker with **Pro features unlocked** — no subscriptions, no paid APIs, no ads.
+Personal Flighty-style flight tracker — **Pro unlocked**, no paid APIs, no ads.
 
-UI follows Flighty’s decoded iOS design language (deep black canvas `#0B0B0F`, Flighty Blue `#0A84FF`, on-time green / delay amber status chips, map-first Flights tab, bottom tab bar, Live Activity–style banner).
+Not affiliated with Flighty, Inc.
 
-Independent project — not affiliated with Flighty, Inc.
+## How to use it (Will)
 
-## Features (all Pro, forever)
+### Option A — Host free on Vercel (best for your phone)
 
-- **Flights** — map on top, Upcoming / Past segments, dense flight cards
-- **Live Activity banner** — in-app progress strip for the active flight (web stand-in for Lock Screen widgets)
-- **Delay predictions** — late-aircraft / ATC / weather style forecasts vs airline times
-- **Where’s My Plane** — inbound progress + tail metadata
-- **Live map** — OpenSky ADS-B when available, simulated track otherwise
-- **Airport intelligence** — delay trends + ATC-style advisories
-- **Connection assistant** — walk / security / buffer risk
-- **Passport (Profile)** — unlimited history, miles, route map
-- **Search / Add** — manual entry + ICS / CSV import
-- **Share links** — tokenized live share pages
-- **PWA** — install to home screen
+1. Merge or open [PR #1](https://github.com/willyclayton/flightly-/pull/1) so the code is on GitHub (`willyclayton/flightly-`).
+2. Go to **[vercel.com/new](https://vercel.com/new)** → sign in with GitHub → import **`flightly-`**.
+3. Leave defaults (Framework: Next.js). **No env vars.** Click **Deploy**.
+4. Open the `*.vercel.app` URL on your iPhone.
+5. Safari → **Share** → **Add to Home Screen**. You now have an app icon.
+6. During a trip, open **Live** (home sheet button, or long-press the icon → Live shortcut) for a glanceable status screen.
 
-## Free data
+Re-deploys happen automatically on every push to the connected branch.
 
-| Need | Source |
-|------|--------|
-| Live positions | [OpenSky Network](https://opensky-network.org/) (personal / non-commercial) |
-| Weather | [Open-Meteo](https://open-meteo.com/) |
-| Airports / airlines | Curated local catalog |
-| Maps | CARTO dark tiles + Leaflet |
-| Predictions | On-device heuristics |
-
-Schedules, gates, and bags are manual / imported / demo-enriched (commercial schedule APIs cost money).
-
-## Run locally
+### Option B — Run on your laptop
 
 ```bash
+git clone https://github.com/willyclayton/flightly-.git
+cd flightly-
+git checkout cursor/flightly-personal-app-3bc9   # or main after merge
 npm install
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Demo trips load on first visit.
 
-```bash
-npm run build && npm start
-npm run typecheck
-```
+### Option C — Other free hosts
 
-## Host it (free)
+- **Netlify** / **Cloudflare Pages** — works with a Next adapter; Vercel is simpler for App Router.
+- Any VPS: `npm run build && npm start` on Node 20+.
 
-Easiest free host for this Next.js app is **Vercel**:
+## Phone widgets — what’s possible
 
-1. Push this repo to GitHub (already done if you’re on the PR branch).
-2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import the repo.
-3. Framework preset: **Next.js**. No env vars required.
-4. Deploy. You’ll get a `*.vercel.app` URL — open it on your phone and **Add to Home Screen**.
+| Want | This app |
+|------|----------|
+| Home Screen app icon | Yes — Add to Home Screen (PWA) |
+| Glanceable “Live” screen during flight | Yes — `/live` |
+| In-app Live Activity strip | Yes — My Flights sheet |
+| iOS Lock Screen / Dynamic Island widgets | **No on web** — needs a native iOS app + paid Apple Developer account (~$99/yr) |
+| Apple Watch complications | Same — native only |
 
-Alternatives: Netlify, Cloudflare Pages (with Next adapter), or any Node host running `npm run build && npm start`.
+Closest free setup today: **Vercel URL → Add to Home Screen → open Live before/during the flight.** Keep the phone unlocked on Live, or jump back from the home icon.
 
-Phone usage tips:
+A later Capacitor/Swift wrapper could add real widgets; that’s a separate native project.
 
-- Safari / Chrome → Share → **Add to Home Screen** for the PWA.
-- The in-app **Live Activity banner** mirrors Flighty’s flight progress strip while the app is open.
-- True iOS Lock Screen / Dynamic Island widgets and Watch complications need a native shell (e.g. free Capacitor wrapper later) — the web platform cannot draw system widgets without a paid Apple Developer account + native binary.
+## Features
 
-## Import
-
-Use **Search** tab → file picker, or `samples/flights.ics`.
-
-CSV headers: `flightNumber,origin,destination,departure`.
+- My Flights map + bottom sheet (Flighty-like UI)
+- Delay predictions, Where’s My Plane, airport ops, connection assistant
+- Flight Log / Passport, ICS/CSV import, share links
+- Free data: OpenSky, Open-Meteo, local airport catalog
 
 ## Privacy
 
-Trips stay in browser `localStorage` (`flightly-v1`). No account, analytics, or payments.
+Trips stay in your browser `localStorage` (`flightly-v1`). No account. No analytics.
 
-## Stack
-
-Next.js · React 19 · TypeScript · Tailwind 4 · Zustand · Framer Motion · Leaflet · date-fns
+**Note:** Clearing site data wipes trips. After you deploy, use the same browser/profile on your phone so data sticks.
