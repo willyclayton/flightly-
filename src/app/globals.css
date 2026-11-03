@@ -17,7 +17,7 @@
   --cancelled: #ff453a;
   --map-land: #16161b;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tab-h: 64px;
+  --tab-h: 78px;
 }
 
 @theme inline {
@@ -76,6 +76,20 @@ a {
   border-radius: 20px 20px 0 0;
   border-top: 1px solid var(--divider);
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Flighty My Flights — light sheet over dark map */
+.sheet-flighty {
+  --sheet-bg: #ffffff;
+  --sheet-text: #0b0b0f;
+  --sheet-muted: #6e6e76;
+  --sheet-line: #ebebef;
+  --sheet-chip: #f2f2f7;
+  background: var(--sheet-bg);
+  color: var(--sheet-text);
+  border-radius: 28px 28px 0 0;
+  border-top: none;
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.35);
 }
 
 .tone-good {
@@ -244,3 +258,73 @@ input::placeholder {
   background: var(--blue);
   box-shadow: 0 0 12px var(--blue-glow);
 }
+
+/* —— Flighty Passport theme —— */
+.passport-normal {
+  --pp-bg: #0e0522;
+  --pp-card: rgba(36, 18, 72, 0.72);
+  --pp-surface: rgba(48, 24, 88, 0.55);
+  --pp-chip: rgba(72, 40, 120, 0.85);
+  --pp-border: rgba(180, 140, 255, 0.18);
+  --pp-text: #f4edff;
+  --pp-muted: #a892c8;
+  --pp-accent: #c9a0ff;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #2a1460 0%, transparent 55%),
+    linear-gradient(180deg, #1a0b3c 0%, #0e0522 48%, #090318 100%);
+  color: var(--pp-text);
+}
+
+.passport-blacklight {
+  --pp-bg: #050012;
+  --pp-card: rgba(28, 0, 64, 0.85);
+  --pp-surface: rgba(60, 0, 110, 0.55);
+  --pp-chip: rgba(120, 20, 200, 0.75);
+  --pp-border: rgba(255, 120, 255, 0.35);
+  --pp-text: #ffe8ff;
+  --pp-muted: #d090ff;
+  --pp-accent: #ff6bff;
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(180, 40, 255, 0.45), transparent 60%),
+    linear-gradient(180deg, #140028 0%, #050012 100%);
+  color: var(--pp-text);
+}
+
+.passport-blacklight .passport-card {
+  box-shadow:
+    0 0 40px rgba(255, 80, 255, 0.25),
+    inset 0 0 40px rgba(160, 40, 255, 0.12);
+}
+
+.passport-ticker-track {
+  width: max-content;
+  animation: passport-marquee 28s linear infinite;
+}
+
+@keyframes passport-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
+.passport-arc {
+  stroke-dasharray: 8 6;
+  animation: passport-dash 18s linear infinite;
+}
+
+@keyframes passport-dash {
+  to {
+    stroke-dashoffset: -280;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
